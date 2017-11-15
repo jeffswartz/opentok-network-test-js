@@ -30,6 +30,7 @@ export type ConnectivityTestResults = {
 };
 
 const errorHasName = (error: OT.OTError | null = null, name: OTErrorType): Boolean => get('code', error) === name;
+let otLogging: OTLogging;
 
 /**
  * Attempt to connect to the OpenTok session
@@ -172,6 +173,7 @@ export const connectivityTest = (
   OT: OpenTok,
   credentials: SessionCredentials,
   environment: OpenTokEnvironment,
+  otLoggingObj: OTLogging,
   deviceOptions?: DeviceOptions,
   onComplete?: CompletionCallback<any>): Promise<ConnectivityTestResults> =>
   new Promise((resolve, reject) => {
@@ -182,6 +184,7 @@ export const connectivityTest = (
         failedTests: [],
       };
       onComplete && onComplete(undefined, results);
+      otLogging.logEvent({ action: 'checkConnectivity', variation: 'Success' });
       return resolve(results);
     };
 
@@ -193,6 +196,7 @@ export const connectivityTest = (
           failedTests: mapErrors(...errors),
         };
         onComplete && onComplete(undefined, results);
+        otLogging.logEvent({ action: 'checkConnectivity', variation: 'Failure' });
         resolve(results);
       };
 
@@ -209,6 +213,7 @@ export const connectivityTest = (
       }
     };
 
+    otLogging = otLoggingObj;
 
     connectToSession(OT, credentials)
       .then(session => checkPublishToSession(OT, session, deviceOptions))

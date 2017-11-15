@@ -39,4 +39,13 @@ interface OpenTok {
   properties: OT.Properties
 }
 
+type OTLoggingData = {
+  action: string,
+  variation: string
+}
+
+interface OTLogging {
+  logEvent: (data: OTLoggingData) => void;
+}
+
 type StreamCreatedEvent = OT.Event<'streamCreated', OT.Publisher> & { stream: OT.Stream };

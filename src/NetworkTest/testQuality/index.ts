@@ -19,6 +19,7 @@ let updateCallback: UpdateCallback<any> | undefined;
 let ot:OpenTok;
 let session: OT.Session;
 let credentials: SessionCredentials;
+let otLogging: OTLogging;
 const testContainerDiv = document.createElement('div');
 
 const connectToSession = () => {
@@ -93,6 +94,7 @@ const checkSubscriberQuality = () => {
         token: credentials.token,
       });
       if (!retVal.subscriber) {
+        otLogging.logEvent({ action: 'testQuality', variation: 'Failure' });
         reject(new e.FailedCheckSubscriberQualityMissingSubscriberError());
       } else {
         try {
@@ -108,6 +110,7 @@ const checkSubscriberQuality = () => {
               retVal.mosScore = qualityScore;
               retVal.bandwidth = bandwidth;
               session.disconnect();
+              otLogging.logEvent({ action: 'testQuality', variation: 'Success' });
               resolve(getFinalRetVal(retVal));
             });
           mosEstimatorTimeoutId = setTimeout(
@@ -116,6 +119,7 @@ const checkSubscriberQuality = () => {
               retVal.mosScore = retVal.mosEstimator.qualityScore();
               retVal.bandwidth = retVal.mosEstimator.bandwidth;
               session.disconnect();
+              otLogging.logEvent({ action: 'testQuality', variation: 'Success' });
               resolve(getFinalRetVal(retVal));
             }, 
             config.getStatsVideoAndAudioTestDuration);
@@ -125,6 +129,7 @@ const checkSubscriberQuality = () => {
             reject(exception);
           } else {
           */
+          otLogging.logEvent({ action: 'testQuality', variation: 'Failure' });
           reject(new e.FailedCheckSubscriberQualityGetStatsError());
         }
       }
@@ -139,12 +144,14 @@ const testQuality = (
   otObj: OpenTok,
   credentialsObj: SessionCredentials,
   environment: OpenTokEnvironment,
+  otLoggingObj: OTLogging,
   onUpdate?: UpdateCallback<any>,
   onComplete?: CompletionCallback<any>): Promise<any> =>
   new Promise((resolve, reject) => {
     ot = otObj;
     credentials = credentialsObj;
     session = ot.initSession(credentials.apiKey, credentials.sessionId);
+    otLogging = otLoggingObj;
     updateCallback = onUpdate;
     checkSubscriberQuality()
     // .then(cleanup)

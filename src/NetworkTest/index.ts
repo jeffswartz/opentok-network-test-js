@@ -16,12 +16,15 @@ import {
   MissingSessionCredentialsError,
 } from './errors';
 import { getOr } from '../util';
+const analytics  = require('opentok-solutions-logging');
+
 
 export default class NetworkTest {
 
   credentials: SessionCredentials;
   environment: OpenTokEnvironment;
   OT: OpenTok;
+  otLogging: OTLogging;
 
   /**
    * Returns an instance of NetworkConnectivity
@@ -29,6 +32,7 @@ export default class NetworkTest {
   constructor(OT: OpenTok, credentials: SessionCredentials, environment: OpenTokEnvironment = 'standard') {
     this.validateOT(OT);
     this.validateCredentials(credentials);
+    this.startLoggingEngine(credentials.apiKey, credentials.sessionId);
     this.OT = OT;
     this.credentials = credentials;
     this.environment = environment;
@@ -49,18 +53,32 @@ export default class NetworkTest {
     }
   }
   private validateCallbacks(
+    action: string,
     updateCallback: UpdateCallback<any> | null,
     onComplete?: CompletionCallback<any>) {
     if (updateCallback) {
       if (typeof updateCallback !== 'function' || updateCallback.length !== 1) {
+        this.otLogging.logEvent({ action, variation: 'Failure' });
         throw new InvalidOnUpdateCallback();
       }
     }
     if (onComplete) {
       if (typeof onComplete !== 'function' || onComplete.length !== 2) {
+        this.otLogging.logEvent({ action, variation: 'Failure' });
         throw new InvalidOnCompleteCallback();
       }
     }
+  }
+
+  private startLoggingEngine(apiKey: string, sessionId: string): void {
+    this.otLogging = new analytics({
+      sessionId,
+      partnerId: apiKey,
+      source: window.location.href,
+      clientVersion: 'js-network-test-1.0.0',
+      name: 'opentok-network-test',
+      componentId: 'opentok-network-test',
+    });
   }
 
   /**
@@ -71,9 +89,10 @@ export default class NetworkTest {
   testQuality(
     updateCallback: UpdateCallback<any>,
     completionCallback: CompletionCallback<any>): Promise<any> {
-    this.validateCallbacks(updateCallback, completionCallback);
+    this.otLogging.logEvent({ action: 'testQuality', variation: 'Attempt' });
+    this.validateCallbacks('testQuality', updateCallback, completionCallback);
     return testQuality(
-      this.OT, this.credentials, this.environment, updateCallback, completionCallback);
+      this.OT, this.credentials, this.environment, this.otLogging, updateCallback, completionCallback);
   }
 
   /**
@@ -82,7 +101,8 @@ export default class NetworkTest {
   checkConnectivity(
     deviceOptions?: DeviceOptions,
     onComplete?: CompletionCallback<any>): Promise<ConnectivityTestResults> {
-    this.validateCallbacks(null, onComplete);
-    return connectivityTest(this.OT, this.credentials, this.environment, deviceOptions, onComplete);
+    this.otLogging.logEvent({ action: 'checkConnectivity', variation: 'Attempt' });
+    this.validateCallbacks('checkConnectivity', null, onComplete);
+    return connectivityTest(this.OT, this.credentials, this.environment, this.otLogging, deviceOptions, onComplete);
   }
 }
