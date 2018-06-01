@@ -10,8 +10,14 @@ interface OpenTok {
   initSession: (partnerId: string, sessionId: string) => OT.Session;
   initPublisher: (targetElement?: HTMLElement | string, properties?: OT.PublisherProperties, callback?: (error?: OT.OTError) => void) => OT.Publisher;
   getDevices(callback: (error: OT.OTError | undefined, devices?: OT.Device[]) => void): void;
+  getUserMedia: () => Promise;
   properties: OT.Properties
   SessionInfo: OT.SessionInfo
+}
+
+declare class MediaRecorder {
+  constructor(stream: MediaStream);
+  start(): void;
 }
 
 type SessionCredentials = {

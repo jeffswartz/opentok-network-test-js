@@ -124,6 +124,34 @@ function getWhiteNoiseMediaStreamTrack() {
     drawWhiteNoise(Math.floor(Math.random() * randomArraySize));
   }, 30);
 }
+
+function getWhiteNoiseAudioTrack(): MediaStreamTrack {
+  const audioCtx: any = new AudioContext();
+  const myArrayBuffer = audioCtx.createBuffer(2, audioCtx.sampleRate * 30, audioCtx.sampleRate);
+
+  for (let channel = 0; channel < myArrayBuffer.numberOfChannels; channel += 1) {
+    const nowBuffering = myArrayBuffer.getChannelData(channel);
+    for (let i = 0; i < myArrayBuffer.length; i += 1) {
+      nowBuffering[i] = Math.random() * 2 - 1;
+    }
+  }
+  const source = audioCtx.createBufferSource();
+  source.buffer = myArrayBuffer;
+
+  // connect the AudioBufferSourceNode to the
+  // destination so we can hear the sound
+  source.connect(audioCtx.destination);
+
+  // start the source playing
+  // source.start();
+
+  const node = audioCtx.createMediaStreamDestination();
+  const mediaRecorder: MediaRecorder = new MediaRecorder(node.stream);
+  mediaRecorder.start();
+  const track: MediaStreamTrack = node.stream.getAudioTracks()[0];
+  return track;
+}
+
 /**
  * Create a test publisher and subscribe to the publihser's stream
  */
@@ -132,6 +160,7 @@ function publishAndSubscribe(OT: OpenTok) {
     new Promise((resolve, reject) => {
       type StreamCreatedEvent = OT.Event<'streamCreated', OT.Publisher> & { stream: OT.Stream };
       getWhiteNoiseMediaStreamTrack();
+      const audioTrack: MediaStreamTrack = getWhiteNoiseAudioTrack();
       const containerDiv = document.createElement('div');
       containerDiv.style.position = 'fixed';
       containerDiv.style.bottom = '-1px';
@@ -141,6 +170,8 @@ function publishAndSubscribe(OT: OpenTok) {
       document.body.appendChild(containerDiv);
       const publisherOptions: OT.PublisherProperties = {
         resolution: '1280x720',
+        // This causes publishing to fail
+        // audioSource: audioTrack,
         videoSource: pubCanvas.captureStream(30).getVideoTracks()[0],
         width: '100%',
         height: '100%',
@@ -192,6 +223,8 @@ function subscribeToTestStream(
   credentials: SessionCredentials): Promise<OT.Subscriber> {
   return new Promise((resolve, reject) => {
     connectToSession(session, credentials.token)
+      // Is this needed when the publisher does not use a camera or mic source?:
+      // .then(OT.getUserMedia)
       .then(publishAndSubscribe(OT))
       .then(resolve)
       .catch(reject);

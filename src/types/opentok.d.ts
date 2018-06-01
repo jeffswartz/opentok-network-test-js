@@ -87,7 +87,7 @@ declare module OT {
   type PublisherProperties = WidgetProperties & {
     audioBitrate?: number;
     audioFallbackEnabled?: boolean;
-    audioSource?: string | null;
+    audioSource?: string | MediaStreamTrack | null;
     disableAudioProcessing?: boolean;
     frameRate?: 30 | 15 | 7 | 1;
     maxResolution?: Dimensions;
