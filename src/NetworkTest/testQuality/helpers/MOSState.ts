@@ -58,7 +58,11 @@ export default class MOSState {
     const hasAudioTrack = this.hasAudioTrack();
     const hasVideoTrack = this.hasVideoTrack();
     if (hasAudioTrack && hasVideoTrack) {
-      return Math.min(this.audioScore(), this.videoScore());
+      const audioScore = this.audioScore();
+      const videoScore = this.videoScore();
+      console.log('MOS audioScore', audioScore);
+      console.log('MOS videoScore', videoScore);
+      return Math.min(audioScore, videoScore);
     } else if (hasAudioTrack && !hasVideoTrack) {
       return this.audioScore();
     } else if (!hasAudioTrack && hasVideoTrack) {

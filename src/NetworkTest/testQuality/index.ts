@@ -30,6 +30,7 @@ type QualityTestResultsBuilder = {
 type MOSResultsCallback = (state: MOSState) => void;
 
 let audioOnly = false; // The initial test is audio-video
+let pubCanvas: any;
 
 /**
  * If not already connected, connect to the OpenTok Session
@@ -92,6 +93,37 @@ function validateDevices(OT: OpenTok): Promise<void> {
   });
 }
 
+function getWhiteNoiseMediaStreamTrack() {
+  const randomArraySize = 83547;
+  const randomBytes: number[] = [];
+  for (let i = 0; i < randomArraySize; i += 1) {
+    randomBytes[i] = Math.floor(Math.random() * 256);
+  }
+
+  pubCanvas = document.createElement('canvas');
+  const context: CanvasRenderingContext2D | null = pubCanvas.getContext('2d');
+  if (!context) {
+    return;
+  }
+  pubCanvas.width = 1280;
+  pubCanvas.height = 720;
+  const imageData: ImageData = context.getImageData(0, 0, 1280, 720);
+  const dataArray: Uint8ClampedArray = imageData.data;
+  const drawWhiteNoise = (seed: number) => {
+    for (let i = 0; i < 1280 * 720 * 4; i += 4) {
+      dataArray[i] = randomBytes[(seed + i) % randomArraySize];
+      dataArray[i + 1] = randomBytes[(seed + i + 1) % randomArraySize];
+      dataArray[i + 2] = randomBytes[(seed + i + 2) % randomArraySize];
+      dataArray[i + 3] = randomBytes[(seed + i + 3) % randomArraySize];
+    }
+
+    context.putImageData(imageData, 0, 0);
+  };
+
+  setInterval(() => {
+    drawWhiteNoise(Math.floor(Math.random() * randomArraySize));
+  }, 30);
+}
 /**
  * Create a test publisher and subscribe to the publihser's stream
  */
@@ -99,6 +131,7 @@ function publishAndSubscribe(OT: OpenTok) {
   return (session: OT.Session): Promise<OT.Subscriber> =>
     new Promise((resolve, reject) => {
       type StreamCreatedEvent = OT.Event<'streamCreated', OT.Publisher> & { stream: OT.Stream };
+      getWhiteNoiseMediaStreamTrack();
       const containerDiv = document.createElement('div');
       containerDiv.style.position = 'fixed';
       containerDiv.style.bottom = '-1px';
@@ -108,6 +141,7 @@ function publishAndSubscribe(OT: OpenTok) {
       document.body.appendChild(containerDiv);
       const publisherOptions: OT.PublisherProperties = {
         resolution: '1280x720',
+        videoSource: pubCanvas.captureStream(30).getVideoTracks()[0],
         width: '100%',
         height: '100%',
         insertMode: 'append',
@@ -115,6 +149,7 @@ function publishAndSubscribe(OT: OpenTok) {
       };
       validateDevices(OT)
         .then(() => {
+
           const publisher = OT.initPublisher(containerDiv, publisherOptions, (error?: OT.OTError) => {
             if (error) {
               reject(new e.InitPublisherError(error.message));

@@ -105,7 +105,7 @@ declare module OT {
     );
     style?: Partial<PublisherStyle>;
     usePreviousDeviceSelection?: boolean;
-    videoSource?: string | null;
+    videoSource?: string | MediaStreamTrack | null;
   };
 
   type SubscriberStyle = WidgetStyle & {
