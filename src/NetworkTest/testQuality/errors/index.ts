@@ -129,6 +129,12 @@ export class PublishToSessionPermissionOrTimeoutError extends PublishToSessionEr
   }
 }
 
+export class HTMLCanvasError extends PublishToSessionError {
+  constructor() {
+    super('Precall failed browser failed to create an HTML Canvas element.');
+  }
+}
+
 /**
  * Subscriber Errors
  */

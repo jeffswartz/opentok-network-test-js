@@ -30,7 +30,6 @@ type QualityTestResultsBuilder = {
 type MOSResultsCallback = (state: MOSState) => void;
 
 let audioOnly = false; // The initial test is audio-video
-let pubCanvas: any;
 
 /**
  * If not already connected, connect to the OpenTok Session
@@ -93,17 +92,17 @@ function validateDevices(OT: OpenTok): Promise<void> {
   });
 }
 
-function getWhiteNoiseMediaStreamTrack() {
+function getWhiteNoiseVideoTrack(): HTMLCanvasElement2 {
   const randomArraySize = 83547;
   const randomBytes: number[] = [];
   for (let i = 0; i < randomArraySize; i += 1) {
     randomBytes[i] = Math.floor(Math.random() * 256);
   }
 
-  pubCanvas = document.createElement('canvas');
+  const pubCanvas: HTMLCanvasElement2 = document.createElement('canvas') as HTMLCanvasElement2;
   const context: CanvasRenderingContext2D | null = pubCanvas.getContext('2d');
   if (!context) {
-    return;
+    throw new e.HTMLCanvasError();
   }
   pubCanvas.width = 1280;
   pubCanvas.height = 720;
@@ -123,6 +122,8 @@ function getWhiteNoiseMediaStreamTrack() {
   setInterval(() => {
     drawWhiteNoise(Math.floor(Math.random() * randomArraySize));
   }, 30);
+
+  return pubCanvas;
 }
 
 function getWhiteNoiseAudioTrack(): MediaStreamTrack {
@@ -159,8 +160,6 @@ function publishAndSubscribe(OT: OpenTok) {
   return (session: OT.Session): Promise<OT.Subscriber> =>
     new Promise((resolve, reject) => {
       type StreamCreatedEvent = OT.Event<'streamCreated', OT.Publisher> & { stream: OT.Stream };
-      getWhiteNoiseMediaStreamTrack();
-      const audioTrack: MediaStreamTrack = getWhiteNoiseAudioTrack();
       const containerDiv = document.createElement('div');
       containerDiv.style.position = 'fixed';
       containerDiv.style.bottom = '-1px';
@@ -171,8 +170,8 @@ function publishAndSubscribe(OT: OpenTok) {
       const publisherOptions: OT.PublisherProperties = {
         resolution: '1280x720',
         // This causes publishing to fail
-        // audioSource: audioTrack,
-        videoSource: pubCanvas.captureStream(30).getVideoTracks()[0],
+        // audioSource: MediaStreamTrack = getWhiteNoiseAudioTrack(),
+        videoSource: getWhiteNoiseVideoTrack().captureStream(30).getVideoTracks()[0],
         width: '100%',
         height: '100%',
         insertMode: 'append',

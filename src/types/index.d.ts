@@ -101,3 +101,8 @@ type QualityStats = {
 };
 
 type StreamCreatedEvent = OT.Event<'streamCreated', OT.Publisher> & { stream: OT.Stream };
+
+declare class HTMLCanvasElement2 extends HTMLCanvasElement {
+  captureStream(frameRate?: number): MediaStream {
+  }
+}
