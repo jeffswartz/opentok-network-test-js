@@ -93,9 +93,9 @@ function validateDevices(OT: OpenTok): Promise<void> {
 }
 
 function getWhiteNoiseVideoTrack(): HTMLCanvasElement2 {
-  const randomArraySize = 83547;
-  const randomBytes: number[] = [];
-  for (let i = 0; i < randomArraySize; i += 1) {
+  const RANDOM_ARRAY_SIZE = 83547;
+  const randomBytes: Uint8ClampedArray = new Uint8ClampedArray(RANDOM_ARRAY_SIZE);
+  for (let i = 0; i < RANDOM_ARRAY_SIZE; i += 1) {
     randomBytes[i] = Math.floor(Math.random() * 256);
   }
 
@@ -110,17 +110,17 @@ function getWhiteNoiseVideoTrack(): HTMLCanvasElement2 {
   const dataArray: Uint8ClampedArray = imageData.data;
   const drawWhiteNoise = (seed: number) => {
     for (let i = 0; i < 1280 * 720 * 4; i += 4) {
-      dataArray[i] = randomBytes[(seed + i) % randomArraySize];
-      dataArray[i + 1] = randomBytes[(seed + i + 1) % randomArraySize];
-      dataArray[i + 2] = randomBytes[(seed + i + 2) % randomArraySize];
-      dataArray[i + 3] = randomBytes[(seed + i + 3) % randomArraySize];
+      dataArray[i] = randomBytes[(seed + i) % RANDOM_ARRAY_SIZE];
+      dataArray[i + 1] = randomBytes[(seed + i + 1) % RANDOM_ARRAY_SIZE];
+      dataArray[i + 2] = randomBytes[(seed + i + 2) % RANDOM_ARRAY_SIZE];
+      dataArray[i + 3] = randomBytes[(seed + i + 3) % RANDOM_ARRAY_SIZE];
     }
 
     context.putImageData(imageData, 0, 0);
   };
 
   setInterval(() => {
-    drawWhiteNoise(Math.floor(Math.random() * randomArraySize));
+    drawWhiteNoise(Math.floor(Math.random() * RANDOM_ARRAY_SIZE));
   }, 30);
 
   return pubCanvas;
