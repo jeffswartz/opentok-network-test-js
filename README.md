@@ -99,6 +99,20 @@ otNetworkTest.testConnectivity().then((results) => {
 });
 ```
 
+You can also run the quality test in audio-only mode:
+
+```javascript
+const options = {audioOnly: true};
+otNetworkTest.testQuality(options, updateCallback(stats) {
+  const currentStats = stats[stats.length - 1];
+  console.log('testQuality stats', currentStats);
+}).then((results) => {
+  console.log('OpenTok quality results', results);
+).catch((error) => {
+  console.log('OpenTok quality test error', error);
+});
+````
+
 This code uses Promises returned by the `OTNetworkTest.testConnectivity()`
 and `OTNetworkTest.testQuality()` methods. Alternatively, you can pass completion
 handler functions into each of these methods.
@@ -226,6 +240,21 @@ the published stream, it provides the following results:
 
 This method includes two parameters: `updateCallback` and `completionCallback`.
 
+#### options
+
+The `options` parameter is an object containing one property: `audioOnly`. Set this property
+to `true` to run an audio-only test.
+
+When this option is set to `false` (the default), the quality test will try to run an audio-video
+quality test (using both the camera and microphone). If there is no camera available, or if the
+results of the audio-video test do not support adequate audio quality, the test continues in
+audio-only mode.
+
+Setting the `audioOnly` to `true` will reduce the time of the test on systems that have both a
+microphone and camera attached (since the audio-only test is shorter than the audio-video test).
+
+This parameter is optional.
+
 #### updateCallback
 
 The `updateCallback` function is called periodically during the test (at a 1-second test interval).
@@ -281,25 +310,30 @@ is invoked when the connectivity check completes. This callback function takes t
       * `supported` (Boolean) -- Whether the results indicate that video is supported.
 
       * `recommendedFrameRate` (Number) -- The recommended video frame rate. However, if
-        video is unsupported, this is set to `null`.
+        video is unsupported, this is set to `null`. If the the test ran in audio-only mode
+        (for example, because no camera was found), this property is undefined.
 
       * `recommendedResolution` (String) -- The recommended video resolution. This will be
-        set to `'1280x720'`, `'640x480'`, or `'320x240`. However, if video is unsupported,
-        this is set to `null`.
+        set to `'1280x720'`, `'640x480'`, or `'320x240`'. However, if video is unsupported,
+        this is set to `null`. If the the test ran in audio-only mode (for example, because
+        no camera was found), this property is undefined.
 
       * `reason` (String) -- A string describing the reason for an unsupported video recommendation.
-        For example, `'No microphone was found.'`
+        For example, `'No camera was found.'`
 
       * `bitrate` (Number) -- The average number of video bits per second during the last
-        five seconds of the test.
+        five seconds of the test. If the the test ran in audio-only mode (for example, because
+        no camera was found), this property is undefined.
 
       * `frameRate` (Number) -- The average number of frames per second during the last five seconds
         of the test. Note that this is different than the `recommendedFrameRate`. The `frameRate`
         value is the actual frame rate observed during the test, and the `recommendedFrameRate`
-        is the recommended frame rate.
+        is the recommended frame rate. If the the test ran in audio-only mode (for example,
+        because no camera was found), this property is undefined.
 
       * `packetLossRatio` (Number) -- The audio packet loss ratio during the last five seconds
-        of the test.
+        of the test. If the the test ran in audio-only mode (for example, because no camera was
+        found), this property is undefined.
 
   * `audio` (Object) -- Contains the following properties:
 
