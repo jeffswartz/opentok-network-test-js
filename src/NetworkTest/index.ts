@@ -55,23 +55,6 @@ export class NetworkTest {
       throw new IncompleteSessionCredentialsError();
     }
   }
-  private validateCallbacks(
-    action: string,
-    updateCallback?: UpdateCallback<any>,
-    onComplete?: CompletionCallback<any>) {
-    if (updateCallback) {
-      if (typeof updateCallback !== 'function' || updateCallback.length !== 1) {
-        this.otLogging.logEvent({ action, variation: 'Failure' });
-        throw new InvalidOnUpdateCallback();
-      }
-    }
-    if (onComplete) {
-      if (typeof onComplete !== 'function' || onComplete.length !== 2) {
-        this.otLogging.logEvent({ action, variation: 'Failure' });
-        throw new InvalidOnCompleteCallback();
-      }
-    }
-  }
 
   private startLoggingEngine(apiKey: string, sessionId: string): OTKAnalytics {
     return new OTKAnalytics({
@@ -92,9 +75,12 @@ export class NetworkTest {
    * opentok-network-test-js project for details.
    */
   testConnectivity(
-    onComplete?: CompletionCallback<ConnectivityTestResults>): Promise<ConnectivityTestResults> {
+    onComplete?: TestConnectivityCallback): Promise<ConnectivityTestResults> {
     this.otLogging.logEvent({ action: 'testConnectivity', variation: 'Attempt' });
-    this.validateCallbacks('testConnectivity', undefined, onComplete);
+    if (typeof onComplete !== 'function' || onComplete.length !== 1) {
+      this.otLogging.logEvent({ action: 'testConnectivity', variation: 'Failure' });
+      throw new InvalidOnCompleteCallback();
+    }
     return testConnectivity(this.OT, this.credentials, this.otLogging, this.options, onComplete);
   }
 
@@ -108,9 +94,21 @@ export class NetworkTest {
    */
   testQuality(
     updateCallback?: UpdateCallback<UpdateCallbackStats>,
-    completionCallback?: CompletionCallback<QualityTestResults>): Promise<any> {
+    completionCallback?: TestQualityCompletionCallback): Promise<any> {
     this.otLogging.logEvent({ action: 'testQuality', variation: 'Attempt' });
-    this.validateCallbacks('testQuality', updateCallback, completionCallback);
+    if (updateCallback) {
+      if (typeof updateCallback !== 'function' || updateCallback.length !== 1) {
+        this.otLogging.logEvent({ action: 'testQuality', variation: 'Failure' });
+        throw new InvalidOnUpdateCallback();
+      }
+    }
+    if (completionCallback) {
+      if (typeof completionCallback !== 'function' || completionCallback.length !== 2) {
+        this.otLogging.logEvent({ action: 'testQuality', variation: 'Failure' });
+        throw new InvalidOnCompleteCallback();
+      }
+    }
+
     return testQuality(
       this.OT, this.credentials, this.otLogging, this.options, updateCallback, completionCallback);
   }

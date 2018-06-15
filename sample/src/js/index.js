@@ -14,8 +14,8 @@ precallDiv.querySelector('#precall button').addEventListener('click', function()
 function startTest() {
   var options = {audioOnly: precallDiv.querySelector('#precall input').checked};
   otNetworkTest = new NetworkTest(OT, sessionInfo, options);
-  otNetworkTest.testConnectivity(function(error, results) {
-    ConnectivityUI.displayTestConnectivityResults(error, results);
+  otNetworkTest.testConnectivity(function(results) {
+    ConnectivityUI.displayTestConnectivityResults(results);
     testQuality();
   });
 }
