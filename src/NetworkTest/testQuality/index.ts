@@ -267,7 +267,7 @@ export default function testQuality(
   OT: OpenTok,
   credentials: SessionCredentials,
   otLogging: OTKAnalytics,
-  options?: TestQualityOptions,
+  options?: NetworkTestOptions,
   onUpdate?: UpdateCallback<UpdateCallbackStats>,
   onComplete?: CompletionCallback<QualityTestResults>): Promise<QualityTestResults> {
   return new Promise((resolve, reject) => {

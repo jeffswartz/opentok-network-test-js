@@ -103,11 +103,19 @@ otNetworkTest.testConnectivity().then((results) => {
 });
 ```
 
-You can also run the quality test in audio-only mode:
+You can also run the tests in audio-only mode by passing in an `options` object
+with `audioOnly` set to `true` into the constructor:
 
 ```javascript
+const sessionInfo = {
+  apiKey: '123456', // Add the API key for your OpenTok project here.
+  sessionId: '1_MX40NzIwMzJ-fjE1MDElGQkJJfn4', // Add a test session ID for that project
+  token: 'T1==cGFydG5lcXN0PQ==' // Add a token for that session here
+}
 const options = {audioOnly: true};
-otNetworkTest.testQuality(options, updateCallback(stats) {
+const otNetworkTest = new NetworkTest(OT, sessionInfo, options);
+
+otNetworkTest.testQuality(updateCallback(stats) {
   const currentStats = stats[stats.length - 1];
   console.log('testQuality stats', currentStats);
 }).then((results) => {
@@ -145,7 +153,7 @@ The OTNetworkTest NPM module includes three public methods:
 
 ### OTNetworkTest() constructor
 
-The `OTNetworkTest()` constructor includes the following parameters (both required):
+The `OTNetworkTest()` constructor includes the following parameters:
 
 * `ot` -- A reference to the OpenTok.js `OT` object. You must load OpenTok.js into the
   web page and pass the OpenTok.js `OT` into the `OTNetworkTest()` constructor.
@@ -170,7 +178,6 @@ The `OTNetworkTest()` constructor includes the following parameters (both requir
      must be different than the session ID used for communication in the app.
      The test session must be a routed session -- one that uses the [OpenTok Media
      Router](https://tokbox.com/developer/guides/create-session/#media-mode).
-
 
      To test connectivity
      in a specific region, specify a location hint when [creating the test
@@ -204,6 +211,22 @@ the `ErrorNames` object (see [ErrorNames](#errornames)):
       }
     }
     ```
+
+    The `sessionInfo` parameter is optional.
+
+ * `options` --The `options` parameter is an object containing one property: `audioOnly`.
+    Set this property to `true` to run audio-only tests.
+
+    When this option is set to `false` (the default), the quality test will try to run
+    an audio-video quality test (using both the camera and microphone). If there is no
+    camera available, or if the results of the audio-video test do not support adequate
+    audio quality, the test continues in audio-only mode.
+
+    Setting the `audioOnly` to `true` will reduce the time of the quality test on systems that
+    have both a microphone and camera attached (since the audio-only test is shorter than the audio-video test).
+
+    This parameter is optional.
+
 
 ### OTNetworkTest.testConnectivity(callback)
 
@@ -279,7 +302,7 @@ The promise is resolved on success, and the `results` object is passed into the 
 callback method of the promise's `then()` function, or the `error` object is passed into the
 promise's `catch()` function.
 
-### OTNetworkTest.testQuality(options, updateCallback, completionCallback)
+### OTNetworkTest.testQuality(updateCallback, completionCallback)
 
 This function runs a test publisher (using the API key, session ID and token provided in the constructor). Based on the measured video bitrate, audio bitrate, and the audio packet loss for
 the published stream, it provides the following results:
@@ -297,21 +320,6 @@ the published stream, it provides the following results:
   measured audio bitrate and packet loss.
 
 This method includes two parameters: `updateCallback` and `completionCallback`.
-
-#### options
-
-The `options` parameter is an object containing one property: `audioOnly`. Set this property
-to `true` to run an audio-only test.
-
-When this option is set to `false` (the default), the quality test will try to run an audio-video
-quality test (using both the camera and microphone). If there is no camera available, or if the
-results of the audio-video test do not support adequate audio quality, the test continues in
-audio-only mode.
-
-Setting the `audioOnly` to `true` will reduce the time of the test on systems that have both a
-microphone and camera attached (since the audio-only test is shorter than the audio-video test).
-
-This parameter is optional.
 
 #### updateCallback
 
@@ -338,7 +346,7 @@ video in the test stream. The object has the following data:
     timestamp: 1512679143897, // The timestamp of the sample
     phase: 'audio-video' // Either 'audio-video' or 'audio-only'
   }
-  ```
+  ````
 
 The `phase` property is set to 'audio-video' during the initial audio-video test. If a
 secondary audio-only test is required (because audio quality was not acceptable during the
