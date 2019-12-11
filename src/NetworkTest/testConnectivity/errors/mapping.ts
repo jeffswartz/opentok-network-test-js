@@ -14,6 +14,7 @@ export enum FailureType {
   Messaging = 'messaging',
   OpentokJs = 'OpenTok.js',
   Media = 'media',
+  Config = 'config',
   Logging = 'logging',
   ConnectivityError = 'OpenTok.js',
 }
@@ -47,6 +48,8 @@ const mapErrorToCase = (error: ConnectivityError): FailureCase => {
       case ErrorNames.SUBSCRIBE_TO_SESSION_ERROR:
       case ErrorNames.FAILED_MESSAGING_SERVER_TEST:
         return FailureType.Media;
+      case ErrorNames.CONFIG_SERVER_CONNECTION_ERROR:
+        return FailureType.Config;
       case ErrorNames.LOGGING_SERVER_CONNECTION_ERROR:
         return FailureType.Logging;
       default:

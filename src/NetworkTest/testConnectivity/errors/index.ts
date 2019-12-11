@@ -144,7 +144,16 @@ export class SubscribeToSessionError extends ConnectivityError {
 }
 
 /**
- * Logger Server Error
+ * Config Server Error
+ */
+export class ConfigServerConnectionError extends ConnectivityError {
+  constructor(){
+    super('Failed to connect to the OpenTok config server.', ErrorNames.CONFIG_SERVER_CONNECTION_ERROR);
+  }
+}
+
+/**
+* Logging Server Error
  */
 export class LoggingServerConnectionError extends ConnectivityError {
   constructor(){

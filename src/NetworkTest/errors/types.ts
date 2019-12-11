@@ -34,6 +34,7 @@ export enum ErrorNames {
   PUBLISH_TO_SESSION_NETWORK_ERROR = 'PublishToSessionNetworkError',
   SUBSCRIBE_TO_SESSION_ERROR = 'SubscribeToSessionError',
   LOGGING_SERVER_CONNECTION_ERROR = 'LoggingServerConnectionError',
+  CONFIG_SERVER_CONNECTION_ERROR = 'ConfigServerConnectionError',
   QUALITY_TEST_ERROR = 'QualityTestError',
   UNSUPPORTED_BROWSER = 'UnsupportedBrowser',
   SUBSCRIBER_GET_STATS_ERROR = 'SubscriberGetStatsError',

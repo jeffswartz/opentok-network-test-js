@@ -275,6 +275,10 @@ with a `results` object that has the following two properties:
     you debug issues with the session, using tools like [OpenTok
     Inspector](https://tokbox.com/developer/tools/inspector/).
 
+    * `'config'` -- The test could not connect to the OpenTok config server. The OpenTok.js
+    library connects to this server to obtain configuration information for your project
+    (based on your API key).
+
   * `error` -- An object defining the reason for the type of failure. This object includes
   a `message` property and a `name` property. The message property describes the error.
   You should check the `name` property to determine the type of error. The `name` property

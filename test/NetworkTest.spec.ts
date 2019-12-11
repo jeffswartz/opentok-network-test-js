@@ -1,9 +1,10 @@
 /* tslint: disable */
 
 import * as OTClient from '@opentok/client';
+import * as axios from 'axios';
+import * as MockAdapter from 'axios-mock-adapter';
 import {
   primary as sessionCredentials,
-  faultyLogging as badLoggingCredentials,
   faultyApi as badApiCredentials,
 } from './credentials.json';
 import {
@@ -127,21 +128,33 @@ describe('NetworkTest', () => {
           .finally(done);
       });
 
-      it('should result in a failed test if the logging server cannot be reached', (done) => {
-        const badLoggingOT = {
-          ...OTClient,
-          ...{
-            properties: {
-              ...OTClient.properties,
-              loggingURL: OTClient.properties.loggingURL.replace('tokbox', 'bad-tokbox')
+      it('should result in a failed test if the config server cannot be reached', (done) => {
+        var mock = new MockAdapter(axios);
+        mock.onGet(`https://config.opentok.com/project/${sessionCredentials.apiKey}/config.json`).reply(400);
+        const netTest = new NetworkTest(OT, sessionCredentials)
+        netTest.testConnectivity()
+          .then((results: ConnectivityTestResults) => {
+            expect(results.failedTests).toBeInstanceOf(Array);
+            if (results.failedTests.find(f => f.type === 'config')) {
+              mock.restore();
+              done();
             }
-          }
-        };
-        const badLoggingNetworkTest = new NetworkTest(badLoggingOT, badLoggingCredentials)
-        badLoggingNetworkTest.testConnectivity()
+          });
+      }, 10000);
+
+      it('should result in a failed test if the logging server cannot be reached', (done) => {
+        var mock = new MockAdapter(axios);
+        mock.onGet(`https://config.opentok.com/project/${sessionCredentials.apiKey}/config.json`).reply(200, {
+          loggingUrl: 'https://hlg.tokbox.com/prod',
+        }
+        );
+        mock.onPost(`https://hlg.tokbox.com/prod/logging/ClientEvent`).reply(400);
+        const netTest = new NetworkTest(OT, sessionCredentials)
+        netTest.testConnectivity()
           .then((results: ConnectivityTestResults) => {
             expect(results.failedTests).toBeInstanceOf(Array);
             if (results.failedTests.find(f => f.type === 'logging')) {
+              mock.restore();
               done();
             }
           });

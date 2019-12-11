@@ -215,15 +215,23 @@ function checkSubscribeToSession({ session, publisher }: PublishToSessionResults
 /**
  * Attempt to connect to the tokbox client logging server
  */
-function checkLoggingServer(OT: OT.Client, input?: SubscribeToSessionResults): Promise<SubscribeToSessionResults> {
+function checkLoggingServer(apiKey: string, input?: SubscribeToSessionResults): Promise<SubscribeToSessionResults> {
   return new Promise((resolve, reject) => {
-    const url = `${getOr('', 'properties.loggingURL', OT)}/logging/ClientEvent`;
-    const handleError = () => reject(new e.LoggingServerConnectionError());
+    const handleLoggingError = () => reject(new e.LoggingServerConnectionError());
+    const handleConfigError = () => reject(new e.ConfigServerConnectionError());
+    const testLoggingUrl = (url: string) => {
+      axios.post(`${url}/logging/ClientEvent`)
+        .then(response => response.status === 200 ? resolve(input) : handleLoggingError())
+        .catch(handleLoggingError);
+    }
 
-    axios.post(url)
-      .then(response => response.status === 200 ? resolve(input) : handleError())
-      .catch(handleError);
-
+    axios.get(`https://config.opentok.com/project/${apiKey}/config.json`)
+      .then((response) => {
+        response.status === 200 ? testLoggingUrl(response.data.loggingUrl) : handleConfigError()
+      })
+      .catch(error => {
+        handleConfigError()
+      });
   });
 }
 
@@ -237,7 +245,7 @@ export function testConnectivity(
   options?: NetworkTestOptions,
 ): Promise<ConnectivityTestResults> {
   return new Promise((resolve, reject) => {
-
+    let session: OT.Session;
     const onSuccess = (flowResults: SubscribeToSessionResults) => {
       const results: ConnectivityTestResults = {
         success: true,
@@ -275,19 +283,22 @@ export function testConnectivity(
        * If we encounter an error before testing the connection to the logging server, let's perform
        * that test as well before returning results.
        */
-      if (error.name === 'LoggingServerConnectionError') {
-        handleResults(error);
+      if (error.name === 'LoggingServerConnectionError' || error.name === 'ConfigServerConnectionError') {
+        disconnectFromSession(session).then(() => handleResults(error));
       } else {
-        checkLoggingServer(OT)
+        checkLoggingServer(credentials.apiKey)
           .then(() => handleResults(error))
           .catch((loggingError: e.LoggingServerConnectionError) => handleResults(error, loggingError));
       }
     };
 
     connectToSession(OT, credentials)
-      .then((session: OT.Session) => checkPublishToSession(OT, session, options))
+      .then((sess: OT.Session) => {
+        session = sess;
+        return checkPublishToSession(OT, session, options);
+      })
       .then(checkSubscribeToSession)
-      .then((results: SubscribeToSessionResults) => checkLoggingServer(OT, results))
+      .then((results: SubscribeToSessionResults) => checkLoggingServer(credentials.apiKey, results))
       .then(onSuccess)
       .catch(onFailure);
   });

@@ -22,8 +22,8 @@ function createSessionAndToken({ apiKey, apiSecret }) {
 }
 
 function writeCredentials(credentialsArray) {
-  const [primary, faultyLogging, faultyApi] = credentialsArray;
-  const credentials = { primary, faultyLogging, faultyApi };
+  const [primary, faultyApi] = credentialsArray;
+  const credentials = { primary, faultyApi };
   return fse.outputJson('./test/credentials.json', credentials);
 }
 

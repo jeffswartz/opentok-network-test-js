@@ -46,6 +46,7 @@
     "@types/opentok": "^2.3.4",
     "@types/promise": "^7.1.30",
     "@types/webrtc": "0.0.22",
+    "axios-mock-adapter": "^1.17.0",
     "babel-core": "^6.26.3",
     "babel-loader": "^7.1.4",
     "babel-preset-env": "^1.7.0",
