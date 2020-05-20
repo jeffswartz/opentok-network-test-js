@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <script type="text/javascript" src="https://static.opentok.com/v2/js/opentok.min.js"></script>
+    <script type="text/javascript" src="../dist/NetworkTest/index.js"></script>
+    <script>
+      var module = { exports: {} };
+    </script>
+    <script type="text/javascript" src="src/js/config.js"></script>
+    <script>
+      const options = module.exports;
+    </script>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link href="assets/styles.css"  rel="stylesheet">
+  </head>
+  <style>
+    h1, div {
+      padding: 20px;
+    }
+  </style>
+  <body>
+    <h1>OpenTok <small>Network test</small></h1>
+    <div id="connectivity-results"></div>
+    <div id="quality-results"></div>
+    <script>
+      const otNetworkTest = new OpenTokNetworkConnectivity.default(OT, options);
+            
+      document.getElementById('connectivity-results').innerText = 'Starting test...';
+      otNetworkTest.testConnectivity().then((results) => {
+        document.getElementById('connectivity-results').innerText =
+          'OpenTok connectivity test results: ' + JSON.stringify(results, null, 2);
+        otNetworkTest.testQuality((stats) => {
+          document.getElementById('quality-results').innerText = 
+            'intermediate testQuality stats: ' + JSON.stringify(stats, null, 2);
+        }).then((results) => {
+          // This function is called when the quality test is completed.
+          document.getElementById('quality-results').innerText =
+            'OpenTok quality results: ' + JSON.stringify(results, null, 2);
+        });
+      });
+    </script>
+  </body>
+</html>
